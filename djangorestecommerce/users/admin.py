@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.translation import gettext_lazy as _
-from .models import BaseUser, Profile
+from djangorestecommerce.users.models import BaseUser, Profile
 
 
 @admin.register(BaseUser)
@@ -9,12 +9,13 @@ class UserAdmin(BaseUserAdmin):
     list_display = ('email', 'phone', 'first_name', 'last_name', 'is_active', 'is_admin')
     list_filter = ('is_admin', 'is_active', 'is_superuser')
     search_fields = ('email', 'first_name', 'last_name', 'phone')
-    ordering = ('email',)
+    ordering = ('-created_at',)
     
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         (_('Personal info'), {'fields': ('first_name', 'last_name', 'phone', 'address')}),
         (_('Permissions'), {'fields': ('is_active', 'is_admin', 'is_superuser', 'groups', 'user_permissions')}),
+        (_('Important dates'), {'fields': ('last_login', 'created_at', 'updated_at')}),
     )
     
     add_fieldsets = (
@@ -24,6 +25,7 @@ class UserAdmin(BaseUserAdmin):
         }),
     )
     
+    readonly_fields = ('created_at', 'updated_at', 'last_login')
 
 
 @admin.register(Profile)

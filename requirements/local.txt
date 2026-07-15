@@ -1,0 +1,21 @@
+-r base.txt
+
+pytest==7.2.0
+pytest-django==4.5.2
+
+factory-boy==3.2.1
+Faker==15.1.1
+
+flake8==5.0.4
+
+ipdb==0.13.9
+ipython==8.5.0
+
+mypy==0.971
+django-stubs==5.2.2
+djangorestframework-stubs==1.7.0   # ممکن است نیاز به به‌روزرسانی داشته باشد
+boto3-stubs==1.24.71
+drf-spectacular==0.30.0
+django-redis==5.2.0
+
+django-stubs-ext==5.2.2

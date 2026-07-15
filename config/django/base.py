@@ -18,6 +18,7 @@ LOCAL_APPS = [
     'djangorestecommerce.common.apps.CommonConfig',
     'djangorestecommerce.users.apps.UsersConfig',
     'djangorestecommerce.authentication.apps.AuthenticationConfig',
+    'djangorestecommerce.products.apps.ProductsConfig',
 ]
 
 THIRD_PARTY_APPS = [
@@ -28,6 +29,7 @@ THIRD_PARTY_APPS = [
     'corsheaders',
     'drf_spectacular',
     'django_extensions',
+    "phonenumber_field",
 ]
 
 INSTALLED_APPS = [
@@ -39,7 +41,6 @@ INSTALLED_APPS = [
     # http://whitenoise.evans.io/en/stable/django.html#using-whitenoise-in-development
     "whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",
-    "phonenumber_field",
     * THIRD_PARTY_APPS,
     *LOCAL_APPS,
 ]

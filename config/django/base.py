@@ -19,6 +19,7 @@ LOCAL_APPS = [
     'djangorestecommerce.users.apps.UsersConfig',
     'djangorestecommerce.authentication.apps.AuthenticationConfig',
     'djangorestecommerce.products.apps.ProductsConfig',
+    'djangorestecommerce.cart.apps.CartConfig',
 ]
 
 THIRD_PARTY_APPS = [

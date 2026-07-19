@@ -20,7 +20,9 @@ from djangorestecommerce.users.selectors import (
 from djangorestecommerce.cart.selectors import (
     get_cart_by_slug, get_cart_by_customer
 )
-from djangorestecommerce.cart.services import get_cart_or_create
+from djangorestecommerce.cart.services import(
+    get_cart_or_create, add_item_to_cart
+)
 
 
 
@@ -82,6 +84,31 @@ class CartApiView(APIView):
                 cart, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK) 
     
+    @extend_schema(
+            request=InputAddItemToCart,
+            responses=OutputCartSerializer
+        )
+    
+    def post(self, request): 
+        profile = get_profile(user=request.user) 
+        serializer = self.InputAddItemToCart(data=request.data)  
+        serializer.is_valid(raise_exception=True) 
+        validated_data = serializer.validated_data 
+        
+        try: 
+            cart = get_cart_or_create(customer=profile) 
+            item = add_item_to_cart(
+                cart=cart,
+                product=validated_data.get("product"),
+                quantity=validated_data.get("quantity"),
+            )
+            serializer = self.OutputCartItemSerializer(
+                item, context={"request": request}
+            )
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Exception as ex: 
+            return Response({"error": str(ex)}, status=status.HTTP_400_BAD_REQUEST)
+            
 
         
         

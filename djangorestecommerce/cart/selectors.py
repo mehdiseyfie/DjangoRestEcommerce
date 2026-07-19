@@ -16,5 +16,7 @@ def get_cart_by_customer(customer:Profile) -> Optional[Cart]:
     except Cart.DoesNotExist: 
         return None  
 
+def get_item_by_slug(cart: Cart, slug: str) -> CartItem: 
+    return get_object_or_404(CartItem, cart=cart, slug=slug) 
 
 

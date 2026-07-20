@@ -2,7 +2,8 @@ from djangorestecommerce.users.models import Profile
 from djangorestecommerce.cart.models import Cart, CartItem
 from djangorestecommerce.products.models import Product
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db import transaction 
+from decimal import Decimal
 
 @transaction.atomic
 def get_cart_or_create(customer: Profile) -> Cart: 
@@ -55,3 +56,9 @@ def update_cart_item(
 def remove_cart_item(item:CartItem)-> None: 
     item.delete() 
 
+@transaction.atomic
+def clear_cart(cart: Cart) -> None:
+    cart.cartitems.all().delete() #type: ignore 
+    cart.total_items = 0 
+    cart.total_price = Decimal("0.00")
+    cart.save()

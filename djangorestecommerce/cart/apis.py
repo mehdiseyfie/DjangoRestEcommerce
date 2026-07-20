@@ -28,7 +28,8 @@ from djangorestecommerce.cart.services import(
     get_cart_or_create, 
     add_item_to_cart, 
     update_cart_item, 
-    remove_cart_item
+    remove_cart_item,
+    clear_cart
 )
 
 
@@ -158,7 +159,7 @@ class CartApiView(APIView):
                 {"error": str(ex)}, status=status.HTTP_400_BAD_REQUEST
             ) 
     @extend_schema(responses={204:None})
-    def delete(self, request, slug): 
+    def delete(self, request, slug=None): 
         
         profile = get_profile(user=request.user)
         try: 
@@ -168,8 +169,11 @@ class CartApiView(APIView):
                     {"error": "you don't have any car"},
                     status=status.HTTP_404_NOT_FOUND
                 )
-            item = get_item_by_slug(cart=cart, slug=slug) 
-            remove_cart_item(item=item)
+            if slug:
+                item = get_item_by_slug(cart=cart, slug=slug) 
+                remove_cart_item(item=item)
+            else:
+                clear_cart(cart)
             return Response(status=status.HTTP_204_NO_CONTENT)
         
         except Exception as ex: 
@@ -178,7 +182,7 @@ class CartApiView(APIView):
                             status=status.HTTP_400_BAD_REQUEST
                             ) 
 
-        
+
         
         
             

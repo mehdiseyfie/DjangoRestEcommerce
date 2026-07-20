@@ -51,4 +51,7 @@ def update_cart_item(
     
     return item
 
+@transaction.atomic
+def remove_cart_item(item:CartItem)-> None: 
+    item.delete() 
 

@@ -9,7 +9,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated 
 from rest_framework_simplejwt.authentication import JWTAuthentication 
 from djangorestecommerce.cart.models import (
-    Cart, CartItem
+    Cart,
+    CartItem
 )
 from djangorestecommerce.products.models import (
     Product
@@ -19,10 +20,15 @@ from djangorestecommerce.users.selectors import (
     get_profile
 )
 from djangorestecommerce.cart.selectors import (
-    get_cart_by_slug, get_cart_by_customer, get_item_by_slug
+    get_cart_by_slug,
+    get_cart_by_customer,
+    get_item_by_slug
 )
 from djangorestecommerce.cart.services import(
-    get_cart_or_create, add_item_to_cart, update_cart_item
+    get_cart_or_create, 
+    add_item_to_cart, 
+    update_cart_item, 
+    remove_cart_item
 )
 
 
@@ -151,9 +157,27 @@ class CartApiView(APIView):
             return Response(
                 {"error": str(ex)}, status=status.HTTP_400_BAD_REQUEST
             ) 
+    @extend_schema(responses={204:None})
+    def delete(self, request, slug): 
         
+        profile = get_profile(user=request.user)
+        try: 
+            cart = get_cart_by_customer(customer=profile) 
+            if not cart: 
+                return Response(
+                    {"error": "you don't have any car"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            item = get_item_by_slug(cart=cart, slug=slug) 
+            remove_cart_item(item=item)
+            return Response(status=status.HTTP_204_NO_CONTENT)
         
-        
+        except Exception as ex: 
+            return Response(
+                            {"error": str(ex)}, 
+                            status=status.HTTP_400_BAD_REQUEST
+                            ) 
+
         
         
         

@@ -65,7 +65,9 @@ class CartApiView(APIView):
         
     
     class OutputCartSerializer(serializers.ModelSerializer): 
-        items = serializers.SlugRelatedField(source="cartitems", many=True, read_only=True, slug_field="slug")
+        
+        items = serializers.SerializerMethodField() 
+        
         
         
         class Meta: 
@@ -79,6 +81,12 @@ class CartApiView(APIView):
                 "is_ordered",
                 
             ) 
+        def get_items(self, obj): 
+            return CartApiView.OutputCartItemSerializer(
+                obj.cartitems.all(),
+                many=True, 
+                context=self.context
+            ).data
     
     @extend_schema(responses=OutputCartSerializer)
     def get(self, request, slug=None): 

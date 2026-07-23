@@ -17,6 +17,7 @@ from rest_framework_simplejwt.authentication import (
 from drf_spectacular.utils import (
     extend_schema
 )
+from djangorestecommerce.cart.selectors import get_cart_by_customer
 from djangorestecommerce.orders.models import (
     Order,
     OrderItem,
@@ -29,7 +30,12 @@ from phonenumber_field.serializerfields import PhoneNumberField
 from djangorestecommerce.users.selectors import get_profile 
 from djangorestecommerce.orders.selectors import(
     get_customer_order_by_slug,
-    get_all_orders_by_customer
+    get_all_orders_by_customer, 
+    get_default_shipping_address,
+    get_shipping_address_by_id,
+) 
+from djangorestecommerce.orders.services import (
+    create_order_from_cart
 )
 
 
@@ -197,6 +203,88 @@ class OrderApiView(APIView):
                 context={"request": request}
             )
             return Response(serializer.data, status=status.HTTP_200_OK) 
+    
+    @extend_schema(
+        request=InputCreateOrderSerializer, responses=OutputOrderSerializer
+    )
+    def post(self, request): 
+        profile = get_profile(user=request.user) 
+        serializer = self.InputCreateOrderSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True) 
+        validated_data = serializer.validated_data 
+        
+        try: 
+            cart = get_cart_by_customer(customer=profile) 
+            if not cart: 
+                return Response(
+                    {
+                        "error": "you don't have any cart.",
+                    },
+                    status=status.HTTP_404_NOT_FOUND
+                ) 
+            if cart.customer != profile: 
+                return Response(
+                    {
+                        "error": "you don't have access to this cart."
+                    },
+                    status=status.HTTP_403_FORBIDDEN
+                ) 
+            shipping_address = None
+            billing_address = None
+
+            if validated_data.get('shipping_address_id'): #type: ignore
+                shipping_address = get_shipping_address_by_id(
+                    address_id=validated_data['shipping_address_id'],  # type: ignore
+                    customer=profile
+                )
+            else:
+                # Use default address
+                shipping_address = get_default_shipping_address(
+                    customer=profile)
+
+            if validated_data.get('billing_address_id'): #type: ignore
+                billing_address = get_shipping_address_by_id(
+                    address_id=validated_data['billing_address_id'],  # type: ignore
+                    customer=profile
+                ) 
+            
+            order = create_order_from_cart(
+                customer=profile,
+                cart=cart, 
+                shipping_address = shipping_address, 
+                billing_address = billing_address,
+                shipping_method = validated_data.get("shipping_method"), 
+                discount_code = validated_data.get("discount_code")
+            )
+            serializer = self.OutputOrderSerializer(
+                order, 
+                context={
+                    "request": request
+                }
+            )
+            return Response(
+                serializer.data, 
+                status=status.HTTP_201_CREATED
+            )
+        except Exception as ex: 
+            return Response(
+                {
+                    "error": str(ex)
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            ) 
+        
+            
+            
+        
+        
+        
+        
+        
+        
+        
+        
+        
         
         
             

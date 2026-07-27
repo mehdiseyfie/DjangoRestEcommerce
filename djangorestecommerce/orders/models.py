@@ -201,7 +201,7 @@ class OrderItem(BaseModel):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.quantity} x {self.product.name} in Order {self.order.id}" #type: ignore
+        return f"{self.quantity} x {self.product.name} in Order {self.order.slug}" #type: ignore
 
 class Discount(BaseModel):
     code = models.CharField(max_length=50, unique=True, verbose_name=_("Discount Code"))
@@ -275,7 +275,7 @@ class Payment(BaseModel):
             raise ValidationError("Completed payment requires order payment status to be paid.")
 
     def __str__(self):
-        return f"Payment {self.payment_id} for Order {self.order.id}" #type:ignore
+        return f"Payment {self.payment_id} for Order {self.order.slug}" #type:ignore
 
 class ShippingAddress(BaseModel):
     customer = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="shipping_addresses", verbose_name=_("Customer"))

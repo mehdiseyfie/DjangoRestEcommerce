@@ -41,9 +41,6 @@ from djangorestecommerce.orders.services import (
     verify_payment, 
 )
 
-from django.http import HttpResponseRedirect
-
-
 class OrderApiView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication] 

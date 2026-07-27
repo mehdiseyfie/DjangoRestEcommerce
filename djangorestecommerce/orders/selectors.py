@@ -4,7 +4,6 @@ from djangorestecommerce.users.models import Profile
 from typing import Optional
 from djangorestecommerce.orders.models import (
     Order,
-    OrderItem,
     ShippingAddress
 ) 
 
@@ -38,3 +37,6 @@ def get_shipping_address_by_id(address_id: int, customer: Profile) -> ShippingAd
         ShippingAddress.objects.filter(customer=customer),
         id=address_id
     )
+
+def get_order_by_slug(customer: Profile, slug: str) -> Order: 
+    return get_object_or_404(Order, customer=customer, slug=slug)

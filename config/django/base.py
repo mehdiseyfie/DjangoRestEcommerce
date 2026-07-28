@@ -21,6 +21,7 @@ LOCAL_APPS = [
     'djangorestecommerce.products.apps.ProductsConfig',
     'djangorestecommerce.cart.apps.CartConfig',
     'djangorestecommerce.orders.apps.OrdersConfig',
+    'djangorestecommerce.payment.apps.PaymentConfig',
 ]
 
 THIRD_PARTY_APPS = [

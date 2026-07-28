@@ -6,4 +6,8 @@ urlpatterns = [
     path("products/", include(("djangorestecommerce.products.urls", "products"))),
     path("cart/", include(("djangorestecommerce.cart.urls", "cart"))), 
     path("orders/", include(("djangorestecommerce.orders.urls", "orders"))),
+    path(
+        "payment/",
+        include(("djangorestecommerce.payment.urls", "payment"))
+    ),
 ]

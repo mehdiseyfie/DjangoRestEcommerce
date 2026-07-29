@@ -2,6 +2,9 @@ from django.db import transaction
 from djangorestecommerce.orders.models import (
     Order,
 )
+from djangorestecommerce.orders.services import (
+    remove_product_from_stock
+)
 from typing import (
     Optional, 
     Any 
@@ -34,6 +37,7 @@ ZARINPAL_MERCHANT_ID = env("ZARINPAL_MERCHANT_ID")
 ZARINPAL_REQUEST_URL = env("ZARINPAL_REQUEST_URL")
 ZARINPAL_VERIFY_URL = env("ZARINPAL_VERIFY_URL")
 ZARINPAL_STARTPAY_URL = env("ZARINPAL_STARTPAY_URL")
+
 
 
 
@@ -114,7 +118,12 @@ def verify_payment(
         payment = Payment.objects.select_related('order').get(authority=authority)
         order = payment.order 
         
+        
         if payment.status == 'completed':
+            # decrease stock for product.
+            remove_product_from_stock(
+                order=order
+            )
             return {
                 'success': True,
                 'message': 'Payment already verified',

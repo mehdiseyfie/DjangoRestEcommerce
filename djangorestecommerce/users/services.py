@@ -1,5 +1,5 @@
 from django.db import transaction 
-from .models import BaseUser, Profile
+from .models import BaseUser, Profile, ShippingAddress
 
 
 def create_profile(*, user:BaseUser) -> Profile:
@@ -16,3 +16,48 @@ def register(*, phone:str, email:str, first_name:str, last_name:str, password:st
     create_profile(user=user)
 
     return user
+
+@transaction.atomic
+def create_shipping_address(
+    *,
+    customer: Profile, 
+    first_name: str,
+    last_name: str, 
+    company: str, 
+    address: str, 
+    city: str, 
+    state: str, 
+    postal_code: str, 
+    country: str, 
+    phone: str
+) -> ShippingAddress: 
+    
+    return ShippingAddress.objects.create(
+        customer=customer, 
+        first_name=first_name,
+        last_name=last_name, 
+        company=company,
+        address=address, 
+        city=city, 
+        state=state, 
+        postal_code=postal_code, 
+        country=country,
+        phone=phone
+    ) 
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    

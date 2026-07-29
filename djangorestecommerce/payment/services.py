@@ -120,10 +120,6 @@ def verify_payment(
         
         
         if payment.status == 'completed':
-            # decrease stock for product.
-            remove_product_from_stock(
-                order=order
-            )
             return {
                 'success': True,
                 'message': 'Payment already verified',
@@ -182,6 +178,9 @@ def verify_payment(
             order.payment_status = 'paid'
             order.status = 'confirmed'
             order.save()
+            
+            # decrease stock for product.
+            remove_product_from_stock(order=order)
             
             # Clear cart items
             cart = order.cart

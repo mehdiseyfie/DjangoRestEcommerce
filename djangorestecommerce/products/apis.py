@@ -11,14 +11,12 @@ from djangorestecommerce.products.selectors import (
     get_product_by_slug,
     get_all_products
 )
-from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.authentication import JWTAuthentication 
+from rest_framework.permissions import AllowAny
 
 
 
-class CategoryApiView(APIView): 
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [JWTAuthentication]
+class CategoryApiView(APIView):
+    permission_classes = [AllowAny]
 
     class OutputCategorySerializer(serializers.ModelSerializer): 
         class Meta: 
@@ -34,7 +32,7 @@ class CategoryApiView(APIView):
         if slug: 
             category = get_category_by_slug(slug=slug) 
             serializer = self.OutputCategorySerializer(
-                category, context={"request", request}
+                category, context={"request":request}
             )
             return Response(serializer.data, status=status.HTTP_200_OK) 
         else: 
@@ -45,8 +43,7 @@ class CategoryApiView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class ProductApiView(APIView):
-    permission_classes = [IsAuthenticated] 
-    authentication_classes = [JWTAuthentication] 
+    permission_classes = [AllowAny]
     
     class OutputProductSerializer(serializers.ModelSerializer): 
         category = serializers.CharField(source="category.name")
@@ -60,7 +57,7 @@ class ProductApiView(APIView):
         if slug: 
             product = get_product_by_slug(slug=slug) 
             serializer = self.OutputProductSerializer(
-                product, context={"request", request}
+                product, context={"request":request}
             )
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:

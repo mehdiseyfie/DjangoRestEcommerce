@@ -1,7 +1,11 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.translation import gettext_lazy as _
-from djangorestecommerce.users.models import BaseUser, Profile
+from djangorestecommerce.users.models import (
+    BaseUser,
+    Profile, 
+    ShippingAddress
+)
 
 
 @admin.register(BaseUser)
@@ -37,3 +41,21 @@ class ProfileAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {'fields': ('user',)}), 
     )
+
+@admin.register(ShippingAddress)
+class ShippingAddressAdmin(admin.ModelAdmin):
+    list_display = ['customer', 'first_name', 'last_name', 'city', 'country', 'is_default']
+    list_filter = ['is_default', 'country']
+    search_fields = ['first_name', 'last_name', 'city']
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    

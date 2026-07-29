@@ -8,9 +8,13 @@ from django.db.models import F, Sum
 from django.utils.translation import gettext_lazy as _
 from djangorestecommerce.common.models import BaseModel
 from djangorestecommerce.cart.models import Cart
-from djangorestecommerce.users.models import Profile
+from djangorestecommerce.users.models import (
+    Profile,
+    ShippingAddress
+)
 from djangorestecommerce.products.models import Product 
-from django.utils.text import slugify
+from django.utils.text import slugify 
+
 
 
 class Order(BaseModel):
@@ -61,11 +65,11 @@ class Order(BaseModel):
     payment_gateway = models.CharField(max_length=50, default='zarinpal', verbose_name=_("Payment Gateway"))
     tracking_number = models.CharField(max_length=100, blank=True, verbose_name=_("Tracking Number"))
     shipping_address = models.ForeignKey(
-        'ShippingAddress', on_delete=models.SET_NULL, null=True,
+        ShippingAddress, on_delete=models.SET_NULL, null=True,
         related_name='orders_shipping', verbose_name=_("Shipping Address")
     )
     billing_address = models.ForeignKey(
-        'ShippingAddress', on_delete=models.SET_NULL, null=True,
+        ShippingAddress, on_delete=models.SET_NULL, null=True,
         related_name='orders_billing', verbose_name=_("Billing Address")
     )
     shipping_method = models.CharField(
@@ -246,29 +250,3 @@ class Discount(BaseModel):
 
     def __str__(self):
         return f"{self.code} - {self.get_discount_type_display()} {self.value}" # type: ignore
-
-class ShippingAddress(BaseModel):
-    customer = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="shipping_addresses", verbose_name=_("Customer"))
-    first_name = models.CharField(max_length=100, verbose_name=_("First Name"))
-    last_name = models.CharField(max_length=100, verbose_name=_("Last Name"))
-    company = models.CharField(max_length=200, blank=True, verbose_name=_("Company"))
-    address_line_1 = models.CharField(max_length=200, verbose_name=_("Address Line 1"))
-    address_line_2 = models.CharField(max_length=200, blank=True, verbose_name=_("Address Line 2"))
-    city = models.CharField(max_length=100, verbose_name=_("City"))
-    state = models.CharField(max_length=100, verbose_name=_("State"))
-    postal_code = models.CharField(max_length=20, verbose_name=_("Postal Code"))
-    country = models.CharField(max_length=100, verbose_name=_("Country"))
-    phone = models.CharField(max_length=20, verbose_name=_("Phone"))
-    is_default = models.BooleanField(default=False, verbose_name=_("Default Address"))
-
-    class Meta:
-        verbose_name = _("Shipping Address")
-        verbose_name_plural = _("Shipping Addresses")
-
-    def save(self, *args, **kwargs):
-        if self.is_default:
-            ShippingAddress.objects.filter(customer=self.customer, is_default=True).exclude(pk=self.pk).update(is_default=False)
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"{self.first_name} {self.last_name} - {self.city}, {self.country}"

@@ -20,19 +20,20 @@ from drf_spectacular.utils import (
 from djangorestecommerce.cart.selectors import get_cart_by_customer
 from djangorestecommerce.orders.models import (
     Order,
-    OrderItem,
-    ShippingAddress
-    
+    OrderItem
 ) 
+from djangorestecommerce.users.apis import ShippingAddressApiView
 from phonenumber_field.serializerfields import PhoneNumberField
 
-from djangorestecommerce.users.selectors import get_profile 
+from djangorestecommerce.users.selectors import (
+    get_profile, 
+    get_shipping_address_by_id, 
+    get_default_shipping_address
+)
 from djangorestecommerce.payment.apis import OrderPaymentApiView
 from djangorestecommerce.orders.selectors import(
     get_customer_order_by_slug,
     get_all_orders_by_customer, 
-    get_default_shipping_address,
-    get_shipping_address_by_id,
 ) 
 from djangorestecommerce.orders.services import (
     create_order_from_cart, 
@@ -71,26 +72,6 @@ class OrderApiView(APIView):
             model = OrderItem
             fields = "__all__" 
             
-    class OutputShippingAddressSerializer(serializers.ModelSerializer):
-        """Output serializer for shipping address"""
-        
-        class Meta:
-            model = ShippingAddress
-            fields = (
-                "id",
-                "first_name",
-                "last_name",
-                "company",
-                "address_line_1",
-                "address_line_2",
-                "city",
-                "state",
-                "postal_code",
-                "country",
-                "phone",
-                "is_default",
-                "created_at"
-            )
     
     class OutputOrderSerializer(serializers.ModelSerializer): 
         items = serializers.SerializerMethodField()
@@ -160,7 +141,7 @@ class OrderApiView(APIView):
             if not obj.shipping_address:
                 return None 
             
-            return OrderApiView.OutputShippingAddressSerializer(
+            return ShippingAddressApiView.OutputShippingAddressSerializer(
                 obj.shipping_address, 
                 context=self.context
             ).data 
@@ -169,7 +150,7 @@ class OrderApiView(APIView):
         def get_billing_address(self, obj): 
             if not obj.billing_address: 
                 return None 
-            return OrderApiView.OutputShippingAddressSerializer(
+            return ShippingAddressApiView.OutputShippingAddressSerializer(
                 obj.billing_address,
                 context=self.context
             ).data 

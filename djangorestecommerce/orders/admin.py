@@ -1,5 +1,5 @@
 from django.contrib import admin
-from djangorestecommerce.orders.models import Order, OrderItem, ShippingAddress
+from djangorestecommerce.orders.models import Order, OrderItem
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
@@ -21,10 +21,3 @@ class OrderItemAdmin(admin.ModelAdmin):
     def get_total_price_item(self, obj):
         return f"${obj.get_total_price_item():.2f}"
     get_total_price_item.short_description = 'Total Price'
-
-
-@admin.register(ShippingAddress)
-class ShippingAddressAdmin(admin.ModelAdmin):
-    list_display = ['customer', 'first_name', 'last_name', 'city', 'country', 'is_default']
-    list_filter = ['is_default', 'country']
-    search_fields = ['first_name', 'last_name', 'city']

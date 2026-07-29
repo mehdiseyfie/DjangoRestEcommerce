@@ -1,11 +1,14 @@
 from django.db import transaction
 from djangorestecommerce.orders.models import (
-    Order, OrderItem, ShippingAddress
+    Order, OrderItem
 )
 from djangorestecommerce.cart.models import (
     Cart
 )
-from djangorestecommerce.users.models import Profile 
+from djangorestecommerce.users.models import (
+    Profile, 
+    ShippingAddress
+)
 from typing import Optional
 from django.core.exceptions import ValidationError 
 from decimal import Decimal 

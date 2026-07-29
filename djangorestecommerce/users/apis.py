@@ -1,15 +1,24 @@
-from attr.validators import max_len
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import serializers
 
 from django.core.validators import MinLengthValidator
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from .validators import number_validator, special_char_validator, letter_validator
-from djangorestecommerce.users.models import BaseUser , Profile
+from djangorestecommerce.users.models import BaseUser , Profile, ShippingAddress
 from djangorestecommerce.api.mixins import ApiAuthMixin
-from djangorestecommerce.users.selectors import get_profile
-from djangorestecommerce.users.services import register 
+from djangorestecommerce.users.selectors import (
+    get_profile, 
+    get_shipping_address_by_id, 
+    get_shipping_addresses_by_profile
+    
+)
+from djangorestecommerce.users.services import (
+    register, 
+    create_shipping_address
+) 
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken 
 from phonenumber_field.serializerfields import PhoneNumberField
 
@@ -37,7 +46,6 @@ class RegisterApi(APIView):
         last_name = serializers.CharField()
         email = serializers.EmailField()
         phone = PhoneNumberField()
-        address = serializers.CharField(max_length=250)
         password = serializers.CharField(
                 validators=[
                         number_validator,
@@ -77,7 +85,6 @@ class RegisterApi(APIView):
                 "first_name",
                 "last_name",
                 "token", 
-                "address"
                 )
 
         def get_token(self, user):
@@ -111,3 +118,126 @@ class RegisterApi(APIView):
                     )
         return Response(self.OutPutRegisterSerializer(user, context={"request":request}).data)
 
+class ShippingAddressApiView(APIView): 
+    permission_classes = [IsAuthenticated] 
+    authentication_classes = [JWTAuthentication] 
+    
+    class InputShippingAddressSerializer(serializers.Serializer): 
+        
+        first_name = serializers.CharField() 
+        last_name = serializers.CharField() 
+        company = serializers.CharField() 
+        address = serializers.CharField() 
+        city = serializers.CharField()
+        state = serializers.CharField()
+        postal_code = serializers.CharField() 
+        country = serializers.CharField()
+        phone = PhoneNumberField() 
+        
+        
+    class OutputShippingAddressSerializer(serializers.ModelSerializer): 
+        customer_email = serializers.EmailField(source="customer.user.email", read_only=True)
+        
+        class Meta: 
+            model = ShippingAddress 
+            fields = (
+                "id", 
+                "customer_email",
+                "first_name", 
+                "last_name", 
+                "company", 
+                "address", 
+                "city", 
+                "state", 
+                "postal_code", 
+                "country", 
+                "phone", 
+                "is_default",
+            ) 
+            
+        def get_customer(self, obj: ShippingAddress): 
+            return obj.customer
+        
+    
+    @extend_schema(responses=OutputShippingAddressSerializer)
+    def get(self, request, id=None): 
+        profile = get_profile(user=request.user) 
+        if not profile: 
+            return Response(
+                {
+                    "error": "you don't have any profile."
+                }, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        if id: 
+            try:
+                shipping_address = get_shipping_address_by_id(
+                    address_id=id,
+                    customer=profile
+                )
+                serializer = self.OutputShippingAddressSerializer(
+                    shipping_address, context={"request": request}
+                )
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except Exception as ex: 
+                return Response(
+                    {
+                        "error": str(ex)
+                    }, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            shipping_addresses = get_shipping_addresses_by_profile(customer=profile)
+            serializer = self.OutputShippingAddressSerializer(
+                shipping_addresses, many=True, context={"request": request}
+            )
+            return Response(serializer.data, status=status.HTTP_200_OK) 
+        
+            
+    @extend_schema(
+        request=InputShippingAddressSerializer,
+        responses=OutputShippingAddressSerializer
+    )
+    def post(self, request): 
+        customer = get_profile(user=request.user) 
+        serializer = self.InputShippingAddressSerializer(
+            data=request.data
+        ) 
+        serializer.is_valid(raise_exception=True) 
+        validated_data = serializer.validated_data 
+        
+        if not customer: 
+            return Response(
+                {
+                    "error": "you don't have any profile."
+                }, 
+                status=status.HTTP_404_NOT_FOUND
+            ) 
+        try: 
+            shipping_address = create_shipping_address(
+                customer=customer,
+                first_name=validated_data.get("first_name"), 
+                last_name=validated_data.get("last_name"),
+                company=validated_data.get("company"), 
+                address=validated_data.get("address"), 
+                city=validated_data.get("city"), 
+                state=validated_data.get("state"), 
+                postal_code=validated_data.get("postal_code"), 
+                country=validated_data.get("country"), 
+                phone=validated_data.get("phone")
+            )
+            serializer = self.OutputShippingAddressSerializer(
+                shipping_address, context={"request": request}
+            )
+            return Response(
+                serializer.data, 
+                status=status.HTTP_201_CREATED
+            )
+        
+        except Exception as ex: 
+            return Response(
+                {
+                    "error": str(ex)
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            ) 

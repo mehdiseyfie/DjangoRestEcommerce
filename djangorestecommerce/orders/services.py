@@ -74,3 +74,42 @@ def create_order_from_cart (
     cart.save()
 
     return order
+
+
+@transaction.atomic
+def remove_product_from_stock(
+    order: Order
+): 
+    for item in order.orderitems.all(): #type:ignore 
+        item.product.stock -= item.quantity 
+        item.product.save(update_fields=["stock"]) 
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

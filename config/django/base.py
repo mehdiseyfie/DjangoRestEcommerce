@@ -4,7 +4,7 @@ from config.env import env, BASE_DIR
 env.read_env(os.path.join(BASE_DIR, ".env"))
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '***REMOVED***'
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -93,9 +93,9 @@ if os.environ.get('GITHUB_WORKFLOW'):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'github_actions',
-            'USER': 'mehdiseyfi',
-            'PASSWORD': '***REMOVED***',
+            'NAME': os.environ.get('POSTGRES_DB', 'github_actions'),
+            'USER': os.environ.get('POSTGRES_USER', 'postgres'),
+            'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'postgres'),
             'HOST': '127.0.0.1',
             'PORT': '5432',
         }

@@ -7,10 +7,14 @@ from decimal import Decimal
 
 @transaction.atomic
 def get_cart_or_create(customer: Profile) -> Cart: 
-    try: 
-        return Cart.objects.get(customer=customer) 
-    except Cart.DoesNotExist: 
-        return Cart.objects.create(customer=customer) 
+    cart = Cart.objects.filter(
+        customer=customer, is_active=True
+    ).first() 
+    
+    if cart: 
+        return cart 
+    return Cart.objects.create(customer=customer) 
+    
 
 @transaction.atomic
 def add_item_to_cart(cart: Cart, product: Product, quantity: int) -> CartItem: 

@@ -12,7 +12,7 @@ def get_cart_by_slug(slug: str) -> Cart:
 
 def get_cart_by_customer(customer:Profile) -> Optional[Cart]: 
     try:
-        return Cart.objects.get(customer=customer) 
+        return Cart.objects.filter(customer=customer, is_active=True).first()
     except Cart.DoesNotExist: 
         return None  
 

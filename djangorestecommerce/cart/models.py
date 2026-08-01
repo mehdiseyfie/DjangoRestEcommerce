@@ -13,9 +13,9 @@ import uuid
 
 
 class Cart(BaseModel):
-    customer = models.OneToOneField(
+    customer = models.ForeignKey(
         Profile, on_delete=models.CASCADE,
-        related_name="cart",
+        related_name="carts",
         verbose_name=_("Customer")
     )
 
@@ -36,6 +36,14 @@ class Cart(BaseModel):
     class Meta:
         verbose_name = _("Cart")
         verbose_name_plural = _("Carts")
+        constraints = [
+            
+            models.UniqueConstraint(
+            fields=["customer"],
+            condition=models.Q(is_active=True), 
+            name="unique_active_cart_per_customer",
+            )
+        ]
 
     def save(self, *args, **kwargs):
         

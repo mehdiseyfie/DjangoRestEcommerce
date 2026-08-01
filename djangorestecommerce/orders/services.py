@@ -71,7 +71,9 @@ def create_order_from_cart (
 
     cart.is_ordered = True
     cart.is_active = False
-    cart.save()
+    cart.save() 
+    
+    Cart.objects.create(customer=customer)
 
     return order
 

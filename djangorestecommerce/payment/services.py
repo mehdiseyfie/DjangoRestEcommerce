@@ -51,6 +51,10 @@ def initiate_payment(
     email: Optional[str], 
     mobile: Optional[str]
 ) -> dict[str, Any]:
+    
+    if order.payment_status == "paid": 
+        raise ValidationError("this order was paid")
+    
     try:
         total_amount = order.get_total_amount()
         amount_in_rials = int(total_amount * 10)

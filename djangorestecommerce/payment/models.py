@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import constraints
 from djangorestecommerce.common.models import BaseModel 
 from djangorestecommerce.orders.models import (
     Order
@@ -10,7 +11,7 @@ from django.utils.translation import gettext_lazy as _
 
 
 class Payment(BaseModel):
-    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name="payment", verbose_name=_("Order"))
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="payments", verbose_name=_("Order"))
     payment_id = models.CharField(max_length=100, unique=True, verbose_name=_("Payment ID"))
     authority = models.CharField(max_length=100, blank=True, verbose_name=_("Authority"))
     amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name=_("Amount"))
@@ -27,7 +28,14 @@ class Payment(BaseModel):
     class Meta:
         verbose_name = _("Payment")
         verbose_name_plural = _("Payments")
-        ordering = ['-created_at']
+        ordering = ['-created_at'] 
+        constraints = [
+            models.UniqueConstraint(
+                fields=["order"], 
+                condition=models.Q(status="completed"), 
+                name="unique_completed_payment_per_order", 
+            )
+        ]
 
     def clean(self):
         if self.amount < 0:

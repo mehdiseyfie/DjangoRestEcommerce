@@ -22,6 +22,7 @@ from djangorestecommerce.orders.models import (
     Order,
     OrderItem
 ) 
+from djangorestecommerce.payment.models import Payment
 from djangorestecommerce.users.apis import ShippingAddressApiView
 from phonenumber_field.serializerfields import PhoneNumberField
 
@@ -123,8 +124,8 @@ class OrderApiView(APIView):
                 context=self.context
                 ).data 
             
-        def get_payment(self, obj): 
-            payment = getattr(obj, "payment", None) 
+        def get_payment(self, obj: Order): 
+            payment = obj.payments.order_by("-created_at").first() #type: ignore
             
             if not payment:
                 return None

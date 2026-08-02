@@ -53,8 +53,15 @@ def create_order_from_cart (
     discount_code: Optional[str]
 ) -> Order: 
     
+    cart = Cart.objects.select_for_update().get(slug=cart.slug)
+    
     if not cart.cartitems.exists(): #type: ignore
-        raise ValidationError("Cart is empty.")
+        raise ValidationError("Cart is empty.") 
+    
+    if cart.is_ordered or not cart.is_active:
+        raise ValidationError(
+            "This cart has already been ordered."
+        )
 
     reverse_stock_for_cart(cart=cart)
 

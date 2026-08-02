@@ -3,7 +3,7 @@ from djangorestecommerce.orders.models import (
     Order,
 )
 from djangorestecommerce.orders.services import (
-    remove_product_from_stock
+    release_stock_for_order
 )
 from typing import (
     Optional, 
@@ -136,8 +136,13 @@ def verify_payment(
             # Payment was cancelled by user
             payment.status = 'failed'
             payment.gateway_response = json.dumps({'status': 'cancelled'})
-            payment.save()
+            payment.save() 
             
+            
+            if order.payment != "paid": 
+                release_stock_for_order(order=order)
+                
+
             return {
                 'success': False,
                 'message': 'Payment was cancelled',
@@ -183,9 +188,6 @@ def verify_payment(
             order.status = 'confirmed'
             order.save()
             
-            # decrease stock for product.
-            remove_product_from_stock(order=order)
-            
             # Clear cart items
             cart = order.cart
             CartItem.objects.filter(cart=cart).delete()
@@ -221,7 +223,10 @@ def verify_payment(
             # Verification failed
             payment.status = 'failed'
             payment.gateway_response = json.dumps(result)
-            payment.save()
+            payment.save() 
+            
+            if order.payment != "paid": 
+                release_stock_for_order(order=order) 
             
             error_message = result.get('errors', 'Verification failed')
             return {

@@ -1,10 +1,12 @@
 from django.db import transaction
+from django.db.models import F
 from djangorestecommerce.orders.models import (
     Order, OrderItem
 )
 from djangorestecommerce.cart.models import (
     Cart
 )
+from djangorestecommerce.products.models import Product
 from djangorestecommerce.users.models import (
     Profile, 
     ShippingAddress
@@ -13,6 +15,32 @@ from typing import Optional
 from django.core.exceptions import ValidationError 
 from decimal import Decimal 
 
+
+def reverse_stock_for_cart(cart: Cart) -> None: 
+    
+    for cart_item in cart.cartitems.all(): #type: ignore 
+        #updated_rows is count of fields been changed. if not any fields changed returned 0.
+        update_rows = Product.objects.filter(
+            pk=cart_item.product_id, 
+            stock__gte=cart_item.quantity
+        ).update(
+            stock=F("stock") - cart_item.quantity
+        ) 
+        
+        if update_rows == 0: 
+            raise ValidationError(
+                f"Insuficient stock for {cart_item.product.name}"
+            )
+            
+            
+            
+def release_stock_for_order(order: Order) -> None:
+    for item in order.orderitems.all(): #type: ignore 
+        Product.objects.filter(
+            pk=item.product_id
+        ).update(
+            stock=F("stock") + item.quantity
+        )
 
 @transaction.atomic
 def create_order_from_cart (
@@ -24,12 +52,11 @@ def create_order_from_cart (
     billing_address: Optional[ShippingAddress] = None, 
     discount_code: Optional[str]
 ) -> Order: 
+    
     if not cart.cartitems.exists(): #type: ignore
         raise ValidationError("Cart is empty.")
 
-    for cart_item in cart.cartitems.all(): #type: ignore
-        if cart_item.product.stock < cart_item.quantity:
-            raise ValidationError(f"Insufficient stock for {cart_item.product.name}")
+    reverse_stock_for_cart(cart=cart)
 
     shipping_costs = {
         'standard': Decimal('100000.00'),
@@ -76,16 +103,6 @@ def create_order_from_cart (
     Cart.objects.create(customer=customer)
 
     return order
-
-
-@transaction.atomic
-def remove_product_from_stock(
-    order: Order
-): 
-    for item in order.orderitems.all(): #type:ignore 
-        item.product.stock -= item.quantity 
-        item.product.save(update_fields=["stock"]) 
-        
 
 
 

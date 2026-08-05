@@ -139,7 +139,7 @@ def verify_payment(
             payment.save() 
             
             
-            if order.payment != "paid": 
+            if order.payment_status != "paid": 
                 release_stock_for_order(order=order)
                 
 

@@ -1,4 +1,3 @@
-from PIL.XVThumbImagePlugin import r
 from django.test import TestCase
 
 from djangorestecommerce.users.selectors import get_default_shipping_address

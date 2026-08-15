@@ -122,7 +122,9 @@ class VerifyPaymentTest(TestCase):
         }
         mock_post.return_value = mock_response
 
-        result = verify_payment(authority=self.authority, status="OK")
+        result = verify_payment(authority=self.authority, status="OK") 
+        
+        mock_release.assert_called_once_with(order=self.order)
 
         self.assertFalse(result["success"])
         self.assertEqual(result["payment_status"], "failed")

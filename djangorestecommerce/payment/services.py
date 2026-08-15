@@ -225,7 +225,7 @@ def verify_payment(
             payment.gateway_response = json.dumps(result)
             payment.save() 
             
-            if order.payment != "paid": 
+            if order.payment_status != "paid": 
                 release_stock_for_order(order=order) 
             
             error_message = result.get('errors', 'Verification failed')

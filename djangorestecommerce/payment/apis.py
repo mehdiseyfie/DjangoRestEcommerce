@@ -1,3 +1,4 @@
+from django.http import Http404
 from rest_framework.views import APIView 
 from rest_framework.permissions import (
     IsAuthenticated, 
@@ -80,6 +81,9 @@ class OrderPaymentApiView(APIView):
             else: 
                 return Response({"error": "Payment initiation failed"},
                                 status=status.HTTP_400_BAD_REQUEST) 
+        except Http404:
+            raise
+        
         except Exception as ex:
             return Response({"error": str(ex)}, 
                             status=status.HTTP_400_BAD_REQUEST)

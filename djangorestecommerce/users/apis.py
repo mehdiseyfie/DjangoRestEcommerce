@@ -1,3 +1,4 @@
+from django.http import Http404
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -179,6 +180,10 @@ class ShippingAddressApiView(APIView):
                     shipping_address, context={"request": request}
                 )
                 return Response(serializer.data, status=status.HTTP_200_OK)
+            
+            except Http404:
+                raise 
+            
             except Exception as ex: 
                 return Response(
                     {

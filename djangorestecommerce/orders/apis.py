@@ -1,3 +1,4 @@
+from django.http import Http404
 from rest_framework import (
     serializers,
     status
@@ -277,6 +278,8 @@ class OrderApiView(APIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
+        except Http404:
+            raise
             
         except Exception as ex: 
             return Response(

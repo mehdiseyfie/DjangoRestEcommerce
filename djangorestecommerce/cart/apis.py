@@ -1,6 +1,4 @@
-from profile import Profile
-from typing import Any
-
+from django.http import Http404
 from rest_framework import (
     serializers, status
 )
@@ -150,10 +148,7 @@ class CartApiView(APIView):
                     status=status.HTTP_404_NOT_FOUND
                     )
             item = get_item_by_slug(cart=cart, slug=slug) 
-            if not item: 
-                return Response(
-                        {"error": f"not exist any item with this slug{slug}"}
-                        )
+            
             updated_item = update_cart_item(
                 item=item,
                 quantity=validated_data["quantity"]
@@ -162,6 +157,10 @@ class CartApiView(APIView):
                 updated_item, context={"request": request}
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        except Http404:
+            raise 
+            
         except Exception as ex: 
             return Response(
                 {"error": str(ex)}, status=status.HTTP_400_BAD_REQUEST
@@ -183,6 +182,8 @@ class CartApiView(APIView):
             else:
                 clear_cart(cart)
             return Response(status=status.HTTP_204_NO_CONTENT)
+        except Http404:
+            raise
         
         except Exception as ex: 
             return Response(

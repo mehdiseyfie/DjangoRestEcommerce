@@ -63,9 +63,10 @@ class Cart(BaseModel):
             total_price=Sum(F('quantity') * F('price')),
             total_items=Sum('quantity')
         )
-        self.total_price = totals['total_price'] or 0
-        self.total_items = totals['total_items'] or 0
-        self.save()
+        self.total_price = totals['total_price'] or Decimal("0.00")
+        self.total_items = totals['total_items'] or 0 
+        self.clean()
+        self.save(update_fields=["total_price", "total_items"])
         
     def __str__(self):
         return f"Cart of {self.customer.user.email}"
@@ -106,7 +107,7 @@ class CartItem(BaseModel):
     def get_total_price_item(self):
         return self.price * self.quantity
 
-    def save(self, *args, old_quantity=None, old_price=None, **kwargs):
+    def save(self, *args, **kwargs):
     
         try:
             with transaction.atomic():
@@ -116,27 +117,10 @@ class CartItem(BaseModel):
                     if not self.product or self.product.price is None:
                         raise ValidationError("Product price is not set")
                     self.price = self.product.price 
-
-                is_new = self._state.adding
-                if not is_new and old_quantity is not None and old_price is not None:
-                    diff_quantity = self.quantity - old_quantity
-                    diff_price = (self.quantity * self.price) - (old_quantity * old_price)
-                else:
-                    diff_quantity = self.quantity
-                    diff_price = self.price * self.quantity
-
+                self.clean()
                 super().save(*args, **kwargs)
-
-                # Lock the cart row for the duration of this transaction so
-                # concurrent requests updating the same cart (e.g. two tabs,
-                # a double-click) are serialized instead of racing to read
-                # the same stale total_items/total_price and overwriting
-                # each other's update (lost update).
                 cart = Cart.objects.select_for_update().get(pk=self.cart_id) #type: ignore
-                cart.total_items += diff_quantity
-                cart.total_price += diff_price
-                cart.clean()
-                cart.save(update_fields=["total_items", "total_price"])
+                cart.calculate_totals()
         except Exception as e:
             raise ValidationError(f"Error saving CartItem: {str(e)}")
 
@@ -144,13 +128,10 @@ class CartItem(BaseModel):
     def delete(self, *args, **kwargs):
         
         try:
-            with transaction.atomic():
+            with transaction.atomic(): 
                 cart = Cart.objects.select_for_update().get(pk=self.cart_id) #type: ignore
-                cart.total_items -= self.quantity
-                cart.total_price -= (self.price * self.quantity)
-                cart.clean()
                 super().delete(*args, **kwargs)
-                cart.save(update_fields=["total_items", "total_price"])
+                cart.calculate_totals() 
         except Exception as e:
             raise ValidationError(f"Error deleting CartItem: {str(e)}")
 

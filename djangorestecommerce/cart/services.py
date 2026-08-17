@@ -25,11 +25,8 @@ def add_item_to_cart(cart: Cart, product: Product, quantity: int) -> CartItem:
         raise ValidationError(f"Insufficient stock. Available: {product.stock}")
     try: 
         cart_item = CartItem.objects.get(cart=cart, product=product) 
-        old_quantity = cart_item.quantity 
-        old_price = cart_item.price 
-        total_quantity = old_quantity + quantity 
-        cart_item.quantity = total_quantity
-        cart_item.save(old_quantity=old_quantity, old_price=old_price) 
+        cart_item.quantity += quantity
+        cart_item.save()
         
     except CartItem.DoesNotExist: 
         cart_item = CartItem.objects.create(cart=cart, product=product, quantity=quantity)  
@@ -46,13 +43,10 @@ def update_cart_item(
         raise ValidationError("Quantity must be positive") 
     if item.product.stock < quantity:
         raise ValidationError(f"Insufficient stock. Available: {item.product.stock}")  
-    
-    old_quantity = item.quantity 
-    old_price = item.price 
+     
     
     item.quantity = quantity 
-    
-    item.save(old_quantity=old_quantity, old_price=old_price)
+    item.save()
     
     return item
 
@@ -63,6 +57,4 @@ def remove_cart_item(item:CartItem)-> None:
 @transaction.atomic
 def clear_cart(cart: Cart) -> None:
     cart.cartitems.all().delete() #type: ignore 
-    cart.total_items = 0 
-    cart.total_price = Decimal("0.00")
-    cart.save()
+    cart.calculate_totals()

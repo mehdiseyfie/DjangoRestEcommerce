@@ -83,7 +83,9 @@ class CartItem(BaseModel):
         verbose_name=_("Product")
     )
     quantity = models.PositiveIntegerField(default=1)
-    price = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00")) 
+    price = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True
+    ) 
     
     slug = models.SlugField(max_length=225, unique=True, blank=True)
 
@@ -110,7 +112,7 @@ class CartItem(BaseModel):
             with transaction.atomic():
                 if not self.slug:
                     self.slug = slugify(str(uuid.uuid4()))
-                if not self.price:
+                if self.price is None:
                     if not self.product or self.product.price is None:
                         raise ValidationError("Product price is not set")
                     self.price = self.product.price 
@@ -125,7 +127,12 @@ class CartItem(BaseModel):
 
                 super().save(*args, **kwargs)
 
-                cart = self.cart
+                # Lock the cart row for the duration of this transaction so
+                # concurrent requests updating the same cart (e.g. two tabs,
+                # a double-click) are serialized instead of racing to read
+                # the same stale total_items/total_price and overwriting
+                # each other's update (lost update).
+                cart = Cart.objects.select_for_update().get(pk=self.cart_id) #type: ignore
                 cart.total_items += diff_quantity
                 cart.total_price += diff_price
                 cart.clean()
@@ -138,7 +145,7 @@ class CartItem(BaseModel):
         
         try:
             with transaction.atomic():
-                cart = self.cart
+                cart = Cart.objects.select_for_update().get(pk=self.cart_id) #type: ignore
                 cart.total_items -= self.quantity
                 cart.total_price -= (self.price * self.quantity)
                 cart.clean()

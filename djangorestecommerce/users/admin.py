@@ -15,9 +15,10 @@ class UserAdmin(BaseUserAdmin):
     search_fields = ('email', 'first_name', 'last_name', 'phone')
     ordering = ('-created_at',)
     
+    
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        (_('Personal info'), {'fields': ('first_name', 'last_name', 'phone', 'address')}),
+        (_('Personal info'), {'fields': ('first_name', 'last_name', 'phone')}),
         (_('Permissions'), {'fields': ('is_active', 'is_admin', 'is_superuser', 'groups', 'user_permissions')}),
         (_('Important dates'), {'fields': ('last_login', 'created_at', 'updated_at')}),
     )
@@ -31,12 +32,24 @@ class UserAdmin(BaseUserAdmin):
     
     readonly_fields = ('created_at', 'updated_at', 'last_login')
 
+class ShippingAddressInline(admin.TabularInline): 
+    model = ShippingAddress 
+    fk_name = "customer" 
+    extra = 1 
+    
+    fields = (
+        "first_name", "last_name", "address", "city",
+        "state", "postal_code", "country", "phone", "is_default",
+    )
+    
+
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ('user',)
     search_fields = ('user__email', 'user__first_name', 'user__last_name')
     readonly_fields = ('user',)
+    inlines = [ShippingAddressInline]
     
     fieldsets = (
         (None, {'fields': ('user',)}), 

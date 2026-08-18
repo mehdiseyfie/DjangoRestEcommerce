@@ -117,7 +117,7 @@ class CartItem(BaseModel):
                     if not self.product or self.product.price is None:
                         raise ValidationError("Product price is not set")
                     self.price = self.product.price 
-                self.clean()
+                
                 super().save(*args, **kwargs)
                 cart = Cart.objects.select_for_update().get(pk=self.cart_id) #type: ignore
                 cart.calculate_totals()

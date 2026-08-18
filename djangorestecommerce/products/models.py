@@ -5,6 +5,7 @@ from django.utils.safestring import mark_safe
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _ 
 from djangorestecommerce.common.models import BaseModel
+from django.core.exceptions import ValidationError
 
 class Category(BaseModel):
     name = models.CharField(max_length=255, unique=True)
@@ -85,11 +86,11 @@ class Review(BaseModel):
         verbose_name_plural = _("Reviews")
         
     def __str__(self) -> str:
-        return f"{self.rating} by {self.user.username} for {self.product.name}"
+        return f"{self.rating} by {self.user.email} for {self.product.name}"
     
     
     def save(self, *args, **kwargs):
         if self.rating < 1 or self.rating > 5:
-            raise ValueError("Rating must be between 1 and 5")
+            raise ValidationError("Rating must be between 1 and 5")
         super().save(*args, **kwargs)
 

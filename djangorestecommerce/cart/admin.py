@@ -35,7 +35,7 @@ class CartAdmin(admin.ModelAdmin):
 class CartItemAdmin(admin.ModelAdmin):
     list_display = ("cart", "product", "quantity", "get_total_price_item")
     list_filter = ("cart", "product")
-    search_fields = ("cart__user__email", "product__name")
+    search_fields = ("cart__customer__user__email", "product__name")
 
     def get_total_price_item(self, obj):
         return obj.get_total_price_item()

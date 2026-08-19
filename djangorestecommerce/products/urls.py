@@ -5,8 +5,8 @@ from djangorestecommerce.products.apis import (
 
 urlpatterns = [
     path("", ProductApiView.as_view(), name="product-list"),
-    path("<slug:slug>/", ProductApiView.as_view(), name="product-detail"),
     path("categories/", CategoryApiView.as_view(), name="category-list"),
+    path("<slug:slug>/", ProductApiView.as_view(), name="product-detail"),
     path("categories/<slug:slug>/", CategoryApiView.as_view(), name="category-detail"),
     
 ]

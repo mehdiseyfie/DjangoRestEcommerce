@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework.authentication import BaseAuthentication
 
 from rest_framework_simplejwt.authentication import JWTAuthentication 
-
+from rest_framework.pagination import PageNumberPagination
 
 def get_auth_header(headers):
     value = headers.get('Authorization')
@@ -38,3 +38,52 @@ class ApiAuthMixin:
             JWTAuthentication,
     ]
     permission_classes: PermissionClassesType = (IsAuthenticated, )
+
+class ApiPaginationMixin: 
+    
+    
+    pagination_class = PageNumberPagination 
+    
+    @property
+    def paginator(self): 
+        if not hasattr(self, "_paginator"):
+            self._paginator = self.pagination_class() if self.pagination_class else None 
+        return self._paginator 
+    
+    def paginate_queryset(self, queryset): 
+        if not self.paginator: 
+            return None 
+        return self.paginator.paginate_queryset(
+            queryset,
+            self.request,
+            view=self
+        ) 
+    def get_paginated_response(self, data): 
+        assert self.paginator is not None 
+        return self.paginator.get_paginated_response(data)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

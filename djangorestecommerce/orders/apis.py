@@ -3,6 +3,7 @@ from rest_framework import (
     serializers,
     status
 )
+from djangorestecommerce.api.mixins import ApiPaginationMixin
 from rest_framework.views import (
     APIView
 )
@@ -44,7 +45,7 @@ from djangorestecommerce.payment.services import (
     initiate_payment
 )
 
-class OrderApiView(APIView):
+class OrderApiView(ApiPaginationMixin, APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication] 
     
@@ -176,6 +177,13 @@ class OrderApiView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK) 
         else: 
             orders = get_all_orders_by_customer(customer=profile) 
+            page = self.paginate_queryset(orders) 
+            if page is not None: 
+                serializer = self.OutputOrderSerializer(
+                    page, many=True, context={"request":request}
+                )
+                return self.get_paginated_response(serializer.data)
+            
             serializer = self.OutputOrderSerializer(
                 orders,
                 many=True, 

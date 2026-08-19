@@ -1,4 +1,5 @@
 from rest_framework import(status, serializers)
+from djangorestecommerce.api.mixins import ApiPaginationMixin
 from rest_framework.views import APIView 
 from rest_framework.response import Response 
 from djangorestecommerce.products.models import(
@@ -15,7 +16,7 @@ from rest_framework.permissions import AllowAny
 
 
 
-class CategoryApiView(APIView):
+class CategoryApiView(ApiPaginationMixin, APIView):
     permission_classes = [AllowAny]
 
     class OutputCategorySerializer(serializers.ModelSerializer): 
@@ -37,12 +38,19 @@ class CategoryApiView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK) 
         else: 
             categories = get_all_categories()
+            page = self.paginate_queryset(categories)
+            if page is not None: 
+                serializer = self.OutputCategorySerializer(
+                    page, many=True, context={"request":request}
+                )
+                return self.get_paginated_response(serializer.data)
+                
             serializer = self.OutputCategorySerializer(
                 categories, many=True, context={"request":request}
             )
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
-class ProductApiView(APIView):
+class ProductApiView(ApiPaginationMixin, APIView):
     permission_classes = [AllowAny]
     
     class OutputProductSerializer(serializers.ModelSerializer): 
@@ -62,6 +70,12 @@ class ProductApiView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             products = get_all_products() 
+            page = self.paginate_queryset(products)
+            if page is not None: 
+                serializer = self.OutputProductSerializer(
+                    page, many=True, context={"request":request}
+                )
+                return self.get_paginated_response(serializer.data)
             serializer = self.OutputProductSerializer(
                 products, many=True, context={"request":request}
             )

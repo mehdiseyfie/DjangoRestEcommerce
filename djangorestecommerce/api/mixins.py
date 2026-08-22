@@ -55,8 +55,8 @@ class ApiPaginationMixin:
             return None 
         return self.paginator.paginate_queryset(
             queryset,
-            self.request,
-            view=self
+            self.request,#type:ignore
+            view=self #type:ignore
         ) 
     def get_paginated_response(self, data): 
         assert self.paginator is not None 

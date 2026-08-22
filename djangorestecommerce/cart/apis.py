@@ -4,8 +4,7 @@ from rest_framework import (
 )
 from rest_framework.views import APIView 
 from rest_framework.response import Response 
-from rest_framework.permissions import IsAuthenticated 
-from rest_framework_simplejwt.authentication import JWTAuthentication 
+from djangorestecommerce.api.mixins import ApiAuthMixin
 from djangorestecommerce.cart.models import (
     Cart,
     CartItem
@@ -32,10 +31,8 @@ from djangorestecommerce.cart.services import(
 
 
 
-class CartApiView(APIView):
+class CartApiView(ApiAuthMixin, APIView):
     
-    permission_classes = [IsAuthenticated] 
-    authentication_classes = [JWTAuthentication]  
     
     class InputAddItemToCart(serializers.Serializer):
         product = serializers.SlugRelatedField(

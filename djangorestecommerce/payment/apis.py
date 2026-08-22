@@ -1,10 +1,9 @@
 from django.http import Http404
 from rest_framework.views import APIView 
 from rest_framework.permissions import (
-    IsAuthenticated, 
     AllowAny
 )
-from rest_framework_simplejwt.authentication import JWTAuthentication 
+from djangorestecommerce.api.mixins import ApiAuthMixin
 from drf_spectacular.utils import extend_schema 
 from rest_framework import serializers 
 from djangorestecommerce.payment.models import (
@@ -25,9 +24,7 @@ from djangorestecommerce.payment.services import (
 
 
 
-class OrderPaymentApiView(APIView): 
-    permission_classes = [IsAuthenticated] 
-    authentication_classes = [JWTAuthentication] 
+class OrderPaymentApiView(ApiAuthMixin, APIView): 
     
     class OutputPaymentSerializer(serializers.ModelSerializer): 
         
@@ -93,7 +90,7 @@ class OrderPaymentCallbackApiView(APIView):
     
     permission_classes = [AllowAny]
     
-    
+
     @extend_schema(
         responses={
             200: {

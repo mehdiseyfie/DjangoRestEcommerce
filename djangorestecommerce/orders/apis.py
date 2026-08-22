@@ -10,12 +10,7 @@ from rest_framework.views import (
 from rest_framework.response import (
     Response
 )
-from rest_framework.permissions import (
-    IsAuthenticated
-)
-from rest_framework_simplejwt.authentication import (
-    JWTAuthentication
-)
+from djangorestecommerce.api.mixins import ApiAuthMixin
 from drf_spectacular.utils import (
     extend_schema
 )
@@ -24,7 +19,6 @@ from djangorestecommerce.orders.models import (
     Order,
     OrderItem
 ) 
-from djangorestecommerce.payment.models import Payment
 from djangorestecommerce.users.apis import ShippingAddressApiView
 from phonenumber_field.serializerfields import PhoneNumberField
 
@@ -45,10 +39,8 @@ from djangorestecommerce.payment.services import (
     initiate_payment
 )
 
-class OrderApiView(ApiPaginationMixin, APIView):
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [JWTAuthentication] 
-    
+class OrderApiView(ApiAuthMixin, ApiPaginationMixin, APIView):
+
     class InputCreateOrderSerializer(serializers.Serializer):
         
         shipping_method = serializers.ChoiceField(

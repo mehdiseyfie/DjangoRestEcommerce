@@ -119,9 +119,7 @@ class RegisterApi(APIView):
                     )
         return Response(self.OutPutRegisterSerializer(user, context={"request":request}).data)
 
-class ShippingAddressApiView(APIView): 
-    permission_classes = [IsAuthenticated] 
-    authentication_classes = [JWTAuthentication] 
+class ShippingAddressApiView(ApiAuthMixin, APIView):
     
     class InputShippingAddressSerializer(serializers.Serializer): 
         
